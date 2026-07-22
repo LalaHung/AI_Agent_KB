@@ -3,3 +3,18 @@ my_gems/
 my_gems_parsed.json
 gem-to-agent-kit/
 .venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+.env.*.local
+node_modules/
+dist/
+build/
+.claude/
+.gemini/
+
+# Ignore the cloned external repo to avoid nesting git repos
+claude-html-slide-builder/
+.netlify/
+

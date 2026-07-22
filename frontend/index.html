@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>極簡美學學生成績管理系統 | Student Grade Registry</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="logo-text">
+          <h1>Academia</h1>
+          <p>學生作業與成績管理中心</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="add-record-btn" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> 新增成績紀錄
+        </button>
+        <button id="theme-toggle" class="btn btn-icon" aria-label="切換主題">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats Dashboard -->
+    <section class="dashboard-stats">
+      <div class="stat-card">
+        <div class="stat-icon bg-blue-light text-blue"><i class="fa-solid fa-users"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">總登錄人數</span>
+          <h2 id="stat-total" class="stat-value">0</h2>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-purple-light text-purple"><i class="fa-solid fa-calculator"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">平均分數</span>
+          <h2 id="stat-average" class="stat-value">0.0</h2>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-green-light text-green"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">及格率</span>
+          <h2 id="stat-pass-rate" class="stat-value">0%</h2>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-orange-light text-orange"><i class="fa-solid fa-award"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">最高 / 最低分</span>
+          <h2 id="stat-minmax" class="stat-value">0 / 0</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content Section -->
+    <main class="main-content">
+      <!-- Filter and Search Bar -->
+      <div class="content-toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="search-input" placeholder="搜尋學生姓名或學號...">
+        </div>
+        <div class="filter-group">
+          <select id="subject-filter" class="select-control">
+            <option value="">所有學科</option>
+            <option value="國文">國文</option>
+            <option value="英文">英文</option>
+            <option value="數學">數學</option>
+            <option value="理化">理化</option>
+            <option value="歷史">歷史</option>
+          </select>
+          <select id="status-filter" class="select-control">
+            <option value="">所有狀態</option>
+            <option value="passed">及格 (≥ 60)</option>
+            <option value="failed">不及格 (< 60)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Data List Panel -->
+      <div class="data-panel">
+        <div id="loading-state" class="panel-state">
+          <div class="spinner"></div>
+          <p>正在載入學生成績資料...</p>
+        </div>
+
+        <div id="empty-state" class="panel-state hidden">
+          <div class="empty-icon"><i class="fa-solid fa-folder-open"></i></div>
+          <h3>沒有找到成績紀錄</h3>
+          <p>試著調整篩選條件，或點選右上角新增一筆資料。</p>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" id="grades-table">
+            <thead>
+              <tr>
+                <th>學號</th>
+                <th>學生姓名</th>
+                <th>學科</th>
+                <th>分數</th>
+                <th>狀態</th>
+                <th>考試日期</th>
+                <th>備註</th>
+                <th class="text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="grades-tbody">
+              <!-- JS dynamic render -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>© 2026 Academia Grade Center. 資料庫使用 Google Sheets 安全同步運作中</p>
+    </footer>
+  </div>
+
+  <!-- Add/Edit Record Modal -->
+  <div id="record-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title">新增成績紀錄</h3>
+        <button id="close-modal-btn" class="btn btn-icon"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="record-form" class="modal-body">
+        <input type="hidden" id="form-id">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="form-student-id">學生學號 <span class="required">*</span></label>
+            <input type="text" id="form-student-id" required placeholder="例如: S112001">
+          </div>
+          <div class="form-group">
+            <label for="form-name">學生姓名 <span class="required">*</span></label>
+            <input type="text" id="form-name" required placeholder="請輸入姓名">
+          </div>
+          <div class="form-group">
+            <label for="form-subject">考試學科 <span class="required">*</span></label>
+            <select id="form-subject" required class="select-control">
+              <option value="" disabled selected>請選擇學科</option>
+              <option value="國文">國文</option>
+              <option value="英文">英文</option>
+              <option value="數學">數學</option>
+              <option value="理化">理化</option>
+              <option value="歷史">歷史</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="form-score">考試分數 <span class="required">*</span></label>
+            <input type="number" id="form-score" required min="0" max="100" placeholder="0 - 100">
+          </div>
+          <div class="form-group full-width">
+            <label for="form-date">考試日期 <span class="required">*</span></label>
+            <input type="date" id="form-date" required>
+          </div>
+          <div class="form-group full-width">
+            <label for="form-remarks">備註說明</label>
+            <textarea id="form-remarks" rows="2" placeholder="輸入其他輔助說明或評語..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="cancel-form-btn" class="btn btn-secondary">取消</button>
+          <button type="submit" id="submit-form-btn" class="btn btn-primary">確認儲存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden">
+    <div class="toast-content">
+      <i class="toast-icon fa-solid fa-circle-info"></i>
+      <span id="toast-message">提示訊息</span>
+    </div>
+  </div>
+
+  <!-- Custom Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
