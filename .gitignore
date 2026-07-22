@@ -1,0 +1,5 @@
+# Gems 隱私保護與工具排除
+my_gems/
+my_gems_parsed.json
+gem-to-agent-kit/
+.venv/
