@@ -1,12 +1,14 @@
 # YouTube Subtitle Knowledge Base Builder for AI Agents
 
-This repository contains a automated workflow and scripts designed for AI agents (e.g., Google Antigravity, Claude Code, GPT-CodeX) to build a clean Markdown-based subtitle knowledge base from any YouTube channel. The output is optimized for ingestion into Large Language Models (LLMs) or retrieval systems like **NotebookLM**, **Obsidian**, or vector databases.
+This repository contains automated workflows and scripts designed for AI agents (e.g., Google Antigravity, Claude Code, GPT-CodeX) to build a clean Markdown-based subtitle knowledge base from any YouTube channel. The output is optimized for ingestion into Large Language Models (LLMs) or retrieval systems like **NotebookLM**, **Obsidian**, or vector databases.
+
+> 🤖 **FOR AI AGENTS**: Please read [AGENTS.md](AGENTS.md) for full execution protocols, environment setup, multi-source ingestion pipelines, and daily lifecycle rules.
 
 ---
 
 ## 🤖 Instructions for AI Agents (System Prompt / Goal)
 
-If you are an AI agent tasked with recreating or updating this knowledge base, follow these instructions:
+If you are an AI agent tasked with recreating or updating this knowledge base, refer to [AGENTS.md](AGENTS.md) or follow these core instructions:
 
 1. **Prerequisites Verification**:
    - Ensure **Python 3.x** is installed on the host system.
