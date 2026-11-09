@@ -176,15 +176,27 @@ When requested to speak or summarize verbally ("用語音回答", "唸給我聽"
 
 ---
 
-## 🧰 Phase 5: Global Skill Export (`youtube-kb-builder`)
+## 🧰 Phase 5: Global Skill Export & Portability (`youtube-kb-builder`)
 
-To reuse this YouTube ingestion & GitHub extraction capability across other projects or other agents:
+To reuse this YouTube ingestion & GitHub extraction capability across other projects, machines, or external agents:
 
-1. **Skill Location**: Available in the user's global skill directory at `D:\.gemini\config\skills\youtube-kb-builder\`.
-2. **Standard Structure**:
-   - `SKILL.md`: Skill definition and execution contract.
-   - `scripts/`: Self-contained Python scripts (`fetch_and_filter.py`, `download_and_convert.py`, `extract_github_links.py`, `find_missing_videos.py`).
-3. **Usage in Any Project**: An agent in any directory can trigger this capability simply by calling the scripts in the skill folder.
+### 5.1 Standalone Skill Bundle
+The repository includes a ready-to-distribute skill package inside `skills/youtube-kb-builder/`:
+- `SKILL.md`: Standard agent execution contract with YAML frontmatter.
+- `scripts/`: Self-contained Python utilities (`fetch_and_filter.py`, `download_and_convert.py`, `extract_github_links.py`, `find_missing_videos.py`).
+
+### 5.2 One-Click Cross-Agent Skill Installation
+Any external agent (or user) reading this repository can install the skill into their global configuration with one command:
+
+```powershell
+# Install into Google Antigravity (and optionally Claude Code / Codex)
+powershell -ExecutionPolicy Bypass -File .\skills\install_skill.ps1 -AllAgents
+```
+
+Target installation paths automatically handled:
+* **Google Antigravity**: `~/.gemini/config/skills/youtube-kb-builder/` (or `D:\.gemini\config\skills\`)
+* **Claude Code**: `~/.claude/skills/youtube-kb-builder/`
+* **OpenAI Codex / Cursor**: `~/.agents/skills/youtube-kb-builder/`
 
 ---
 
