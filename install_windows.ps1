@@ -67,3 +67,17 @@ if (Test-Path ".\.venv\Scripts\python.exe") {
 } else {
     Write-Error "Virtual environment python.exe not found at .\.venv\Scripts\python.exe"
 }
+
+# Step 5: Automatically install youtube-kb-builder skill across AI agents
+Write-Host "`nStep 5: Installing youtube-kb-builder skill to AI agent environments..."
+$skillInstaller = Join-Path $PSScriptRoot "skills\install_skill.ps1"
+if (Test-Path $skillInstaller) {
+    try {
+        & powershell -ExecutionPolicy Bypass -File $skillInstaller -AllAgents
+    } catch {
+        Write-Warning "Skill installation encountered an issue, but core environment setup succeeded: $_"
+    }
+} else {
+    Write-Host "No skills installer found at $skillInstaller, skipping."
+}
+
