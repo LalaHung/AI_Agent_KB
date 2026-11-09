@@ -30,13 +30,20 @@ powershell -ExecutionPolicy Bypass -File .\install_windows.ps1
 ```
 
 ### 1.2 Automated Environment Verification
-Verify that the virtual environment and core tools are working correctly:
+Verify that the virtual environment, core dependencies, and optional tools are working correctly:
 
 ```powershell
+# 1. 核心環境依賴檢查 (必備)
 .\.venv\Scripts\python.exe verify_core.py
+
+# 2. 進階套件與字型子集化檢查 (選用)
+.\.venv\Scripts\python.exe verify_optional.py
+
+# 3. 外部服務與整合檢查 (選用)
+.\.venv\Scripts\python.exe verify_external.py
 ```
 
-*Required Check*: Output must return `[SUCCESS] All core checks passed!`.
+*Required Check*: `verify_core.py` 輸出必須回傳 `[SUCCESS] All core checks passed!`。
 
 ---
 
@@ -49,6 +56,7 @@ sequenceDiagram
     participant Agent as AI Agent
     participant Fetcher as tools/fetch_and_filter.py
     participant Converter as tools/download_and_convert.py
+    participant Extractor as tools/extract_github_links.py
     participant Storage as subtitles/*.md
     participant VectorKB as NotebookLM / Obsidian
 
@@ -56,6 +64,8 @@ sequenceDiagram
     Fetcher-->>Agent: Generate video_list.md
     Agent->>Converter: Batch download VTT & clean captions
     Converter-->>Storage: Output deduplicated Markdown files
+    Agent->>Extractor: Extract GitHub repositories from descriptions
+    Extractor-->>Agent: Generate GITHUB_RESOURCES.md
     Agent->>VectorKB: Ingest Markdown into Vector/RAG Database
 ```
 
@@ -78,6 +88,20 @@ Run `tools/download_and_convert.py` to parse raw VTT files, remove timestamps/HT
 #### Cleaning Algorithm Rules for Agents:
 1. **HTML Tag Stripping**: Remove `<c>`, `</c>`, and `<00:00:00.000>` timestamps.
 2. **Scroll Deduplication**: Check consecutive subtitle cues for prefix/suffix overlap. Merge accumulating lines to prevent duplicate sentence spam in RAG embeddings.
+
+#### Step 3: GitHub Repository Extraction & Dual-Index Generation
+Run `tools/extract_github_links.py` to scan all video descriptions and subtitles, extract shared GitHub open-source repositories, and output `GITHUB_RESOURCES.md`:
+
+```powershell
+.\.venv\Scripts\python.exe tools/extract_github_links.py
+```
+
+#### Step 4: Missing Video Differential Scan
+Run `tools/find_missing_antigravity.py` to compare live channel videos/streams against `video_list.md` and find uncataloged tutorials:
+
+```powershell
+.\.venv\Scripts\python.exe tools/find_missing_antigravity.py
+```
 
 ### 2.2 Multi-Source Data Ingestion Pipelines
 
@@ -113,7 +137,7 @@ Once Markdown files are generated in `subtitles/` or specified output folders, t
 ### 3.2 Obsidian Second Brain Sync Protocol
 1. Ensure Vault path contains `.obsidian` configuration folder.
 2. Structure output notes following the 3-Tier Second Brain Architecture:
-   - **Tier 1 (Cockpit / 駕駛艙)**: High-level dashboard, status, and active task lists.
+   - **Tier 1 (Cockpit / 駕駛艙)**: High-level dashboard, status, and active task lists (`AI_Agent_專案駕駛艙.md`).
    - **Tier 2 (Domain Knowledge / 領域知識)**: Categorized reference notes.
    - **Tier 3 (Raw Archive / 原始資料庫)**: Cleaned Markdown files (e.g., `subtitles/`).
 
@@ -126,7 +150,7 @@ AI Agents operating within this repository MUST enforce the standard project lif
 ### 4.1 Start-of-Work Workflow (`開工`)
 When invoked with "開工" or starting a new session, the agent MUST:
 1. Read the root configuration file [ANTIGRAVITY.md](file:///D:/AI/AI_Agent/ANTIGRAVITY.md).
-2. Read the Obsidian Project Cockpit note (if available).
+2. Read the Obsidian Project Cockpit note (`AI_Agent_專案駕駛艙.md`).
 3. Execute `git status` and inspect recent commit logs.
 4. Report current project status and propose actionable next steps.
 5. **DO NOT** execute auto `git pull`, `commit`, or `push` without user confirmation.
@@ -152,6 +176,18 @@ When requested to speak or summarize verbally ("用語音回答", "唸給我聽"
 
 ---
 
+## 🧰 Phase 5: Global Skill Export (`youtube-kb-builder`)
+
+To reuse this YouTube ingestion & GitHub extraction capability across other projects or other agents:
+
+1. **Skill Location**: Available in the user's global skill directory at `D:\.gemini\config\skills\youtube-kb-builder\`.
+2. **Standard Structure**:
+   - `SKILL.md`: Skill definition and execution contract.
+   - `scripts/`: Self-contained Python scripts (`fetch_and_filter.py`, `download_and_convert.py`, `extract_github_links.py`, `find_missing_videos.py`).
+3. **Usage in Any Project**: An agent in any directory can trigger this capability simply by calling the scripts in the skill folder.
+
+---
+
 ## 🔒 Security & Code Audit Rules for AI Agents
 
 1. **No Guessing**: Never guess API parameters, schemas, or file paths without inspecting source files.
@@ -169,8 +205,16 @@ When requested to speak or summarize verbally ("用語音回答", "唸給我聽"
 | [AGENTS.md](file:///D:/AI/AI_Agent/AGENTS.md) | **This Document**: Comprehensive AI Agent System Prompt & Execution Guide |
 | [ANTIGRAVITY.md](file:///D:/AI/AI_Agent/ANTIGRAVITY.md) | Project entry point, basic metadata, and Do/Don't rules |
 | [README.md](file:///D:/AI/AI_Agent/README.md) | User-facing repository overview & quickstart |
-| `install_windows.ps1` | One-click PowerShell environment setup script |
-| `verify_core.py` | Automated environment verification script |
+| [GITHUB_RESOURCES.md](file:///D:/AI/AI_Agent/GITHUB_RESOURCES.md) | Dual-indexed catalog of all GitHub open-source repositories from tutorials |
+| `video_list.md` | List of target YouTube video URLs (65+ videos) |
+| `subtitles/` | Cleaned Markdown files converted from VTT captions |
 | `tools/fetch_and_filter.py` | YouTube channel video scanner & keyword filter |
-| `tools/download_and_convert.py` | Subtitle downloader & deduplication cleaner |
-| `subtitles/` | Output directory containing cleaned Markdown knowledge base files |
+| `tools/download_and_convert.py` | Subtitle downloader & scroll-deduplication cleaner |
+| `tools/extract_github_links.py` | Automatic GitHub repo extractor from video descriptions |
+| `tools/find_missing_antigravity.py` | Missing tutorial scanner via live channel comparison |
+| `tools/batch_add_and_extract.py` | One-click batch append, download, clean, and extract tool |
+| `tools/convert_pending.py` | Safe VTT-to-Markdown batch converter avoiding shell pipe escaping |
+| `install_windows.ps1` | One-click PowerShell environment setup script |
+| `verify_core.py` | Core environment verification script |
+| `verify_optional.py` | Optional packages and font subsetting verification script |
+| `verify_external.py` | External services and integration verification script |
